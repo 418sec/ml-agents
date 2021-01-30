@@ -140,10 +140,10 @@ class MultiInputNetworkBody(nn.Module):
             + self.action_spec.continuous_size
         )
         self.obs_encoder = EntityEmbedding(
-            0, obs_only_ent_size, None, self.h_size, concat_self=False
+            0, obs_only_ent_size, None, self.h_size, concat_self=False, num_layers=2
         )
         self.obs_action_encoder = EntityEmbedding(
-            0, q_ent_size, None, self.h_size, concat_self=False
+            0, q_ent_size, None, self.h_size, concat_self=False, num_layers=2
         )
 
         self.self_attn = ResidualSelfAttention(self.h_size)
