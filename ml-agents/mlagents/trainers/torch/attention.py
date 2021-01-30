@@ -95,7 +95,6 @@ class EntityEmbedding(torch.nn.Module):
         entity_num_max_elements: Optional[int],
         embedding_size: int,
         concat_self: bool = True,
-        num_layers: int = 1,
     ):
         """
         Constructs an EntityEmbeddings module.
@@ -106,7 +105,6 @@ class EntityEmbedding(torch.nn.Module):
         :param embedding_size: Embedding size for the entity encoder.
         :param concat_self: Whether to concatenate x_self to entities. Set True for ego-centric
             self-attention.
-        :param num_layers: Number of layers in the entity encoder.
         """
         super().__init__()
         self.self_size: int = x_self_size
@@ -122,7 +120,7 @@ class EntityEmbedding(torch.nn.Module):
         # Initialization scheme from http://www.cs.toronto.edu/~mvolkovs/ICML2020_tfixup.pdf
         self.ent_encoder = LinearEncoder(
             self.self_size + self.entity_size,
-            num_layers,
+            1,
             embedding_size,
             kernel_init=Initialization.Normal,
             kernel_gain=(0.125 / embedding_size) ** 0.5,
