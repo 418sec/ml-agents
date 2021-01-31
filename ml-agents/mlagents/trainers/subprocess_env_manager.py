@@ -40,9 +40,34 @@ from mlagents_envs.side_channel.stats_side_channel import (
 from mlagents.training_analytics_side_channel import TrainingAnalyticsSideChannel
 from mlagents_envs.side_channel.side_channel import SideChannel
 
+import io
+import builtins
+import pickle
+
+safe_builtins = {
+    'range',
+    'complex',
+    'set',
+    'frozenset',
+    'slice',
+}
 
 logger = logging_util.get_logger(__name__)
 WORKER_SHUTDOWN_TIMEOUT_S = 10
+
+class RestrictedUnpickler(pickle.Unpickler):
+
+    def find_class(self, module, name):
+        """Only allow safe classes from builtins"""
+        if module == "builtins" and name in safe_builtins:
+            return getattr(builtins, name)
+        """Forbid everything else"""
+        raise pickle.UnpicklingError("global '%s.%s' is forbidden" %
+                                     (module, name))
+
+def restricted_loads(s):
+    """Helper function analogous to pickle.loads()"""
+    return RestrictedUnpickler(io.BytesIO(s)).load()
 
 
 class EnvironmentCommand(enum.Enum):
@@ -120,7 +145,7 @@ def worker(
 ) -> None:
     env_factory: Callable[
         [int, List[SideChannel]], UnityEnvironment
-    ] = cloudpickle.loads(pickled_env_factory)
+    ] = cloudpickle.loads(restricted_loads(pickled_env_factory))
     env_parameters = EnvironmentParametersChannel()
 
     engine_config = EngineConfig(
